@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="react.css">
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app"><div style="padding:40px;font-family:system-ui">Loading IELTS Training…</div></div>
   <noscript>This practice app requires JavaScript.</noscript>
   <script src="content-01.js"></script>
   <script src="content-02.js"></script>
@@ -31,8 +31,15 @@
   <script src="content-12.js"></script>
   <script src="data-loader.js"></script>
   <script src="listening-data.js"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script>
+    window.addEventListener('error', function (event) {
+      if (!window.React || !window.ReactDOM) {
+        document.getElementById('app').innerHTML = '<div style="padding:40px;font-family:system-ui"><h1>IELTS Training could not start</h1><p>Please refresh once. If this persists, the React runtime failed to load.</p></div>';
+      }
+    });
+  </script>
   <script src="react-app.js"></script>
 </body>
 </html>
