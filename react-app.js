@@ -199,6 +199,7 @@
     );
     const answered = Object.keys(answers).length;
     const unanswered = passage.questions.length - answered;
+    const wrong = answered - score;
     const percentage = Math.round((score / passage.questions.length) * 100);
     const q = passage.questions[question];
 
@@ -263,7 +264,7 @@
           h("p", { className: "eyebrow" }, "READING / PRACTICE COMPLETE"),
           h("h1", null, score, h("span", null, `/${passage.questions.length}`)),
           h("p", null,
-            `${percentage}% accuracy. ${score} correct, ${passage.questions.length - score} missed, ${unanswered} unanswered.`
+            `${percentage}% accuracy. ${score} correct, ${wrong} incorrect, ${unanswered} unanswered.`
           ),
           h("div", { className: "reading-result-actions" },
             h(Button, {
@@ -280,8 +281,8 @@
         h("section", { className: "reading-result-breakdown" },
           h("div", null, h("span", null, "ACCURACY"), h("strong", null, `${percentage}%`)),
           h("div", null, h("span", null, "CORRECT"), h("strong", null, String(score))),
-          h("div", null, h("span", null, "MISSED"), h("strong", null, String(passage.questions.length - score))),
-          h("div", null, h("span", null, "ANSWERED"), h("strong", null, String(answered)))
+          h("div", null, h("span", null, "INCORRECT"), h("strong", null, String(wrong))),
+          h("div", null, h("span", null, "UNANSWERED"), h("strong", null, String(unanswered)))
         ),
         answerSheet
       );
