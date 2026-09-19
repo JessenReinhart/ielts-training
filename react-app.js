@@ -25,23 +25,27 @@
     const [part, setPart] = useState(0);
     const [started, setStarted] = useState(false);
     const [done, setDone] = useState(false);
+    const [audioError, setAudioError] = useState("");
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState(false);
     const P = data.parts[part];
 
-    useEffect(() => { setStarted(false); setDone(false); setSubmitted(false); }, [part]);
+    useEffect(() => { setStarted(false); setDone(false); setAudioError(""); setSubmitted(false); }, [part]);
 
     const begin = () => {
       if (started || done) return;
-      const audio = new Audio(P.audioUrl);
+      setAudioError("");
+      const audio = new Audio();
+      audio.preload = "auto";
       audio.onplay = () => setStarted(true);
       audio.onended = () => { setDone(true); setStarted(false); };
-      audio.onerror = () => { setDone(true); setStarted(false); };
+      audio.onerror = () => { setStarted(false); setDone(false); setAudioError("The recording file could not be loaded."); };
+      audio.src = P.audioUrl;
       setStarted(true);
-      audio.play().catch(() => { setStarted(false); setDone(true); });
+      audio.play().catch(() => { setStarted(false); setDone(false); setAudioError("The recording could not be started."); });
     };
 
-    const score = P.q.reduce((total, q, i) => total + (answers[`${part}-${i}`] === q[3] ? 1 : 0), 0);
+    const score = P.q.reduce((total, q, i) => total + (answers[`${part}-${i}`] === q[2] ? 1 : 0), 0);
 
     return h("main", { className: "listening-react" },
       h(Nav, { route: "listening", go }),
@@ -69,7 +73,7 @@
           h("p", { className: "eyebrow" }, P.context),
           h("h2", null, P.title),
           h("p", null, P.instructions),
-          h("div", { className: `audio-status ${started ? "live" : ""}` }, started ? "● Recording in progress" : done ? "✓ Recording complete" : "○ Recording not started"),
+          h("div", { className: `audio-status ${started ? "live" : audioError ? "error" : ""}` }, started ? "● Recording in progress" : done ? "✓ Recording complete" : audioError ? `⚠ ${audioError}` : "○ Recording not started"),
           h("div", { className: "listening-rule" }, "IELTS-style rule: listen carefully, predict paraphrases, and do not replay the recording.")
         ),
         h("section", { className: "listening-questions" }, P.q.map((q, i) =>
@@ -80,7 +84,7 @@
               h("div", { className: "listen-options" }, q[1].map((option, j) =>
                 h("button", {
                   key: j,
-                  className: `listen-option ${answers[`${part}-${i}`] === j ? "selected" : ""} ${submitted && j === q[3] ? "correct" : ""}`,
+                  className: `listen-option ${answers[`${part}-${i}`] === j ? "selected" : ""} ${submitted && j === q[2] ? "correct" : ""}`,
                   onClick: () => !submitted && setAnswers({ ...answers, [`${part}-${i}`]: j }),
                   disabled: !started || submitted
                 }, h("b", null, String.fromCharCode(65 + j)), option)
