@@ -8,7 +8,7 @@
   <title>IELTS Training — Academic Practice & Learning</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="learn.css">
   <link rel="stylesheet" href="listening.css">
@@ -17,6 +17,16 @@
 <body>
   <div id="app"><div style="padding:40px;font-family:system-ui">Loading IELTS Training…</div></div>
   <noscript>This practice app requires JavaScript.</noscript>
+  <script>
+    window.__BOOT_ERROR__ = function (err) {
+      var app = document.getElementById('app');
+      if (!app) return;
+      var msg = err && (err.stack || err.message) ? (err.stack || err.message) : 'Unknown startup error';
+      app.innerHTML = '<div style="max-width:720px;margin:10vh auto;padding:32px;font-family:system-ui"><h1>IELTS Training could not start</h1><p>The app hit a startup error. The technical detail below is safe to share for debugging.</p><pre style="white-space:pre-wrap;background:#eee;padding:16px;border-radius:8px">'+String(msg).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</pre><button onclick="location.reload()">Reload</button></div>';
+    };
+    window.addEventListener('error', function(e){ if(!window.__IELTS_APP_STARTED__) window.__BOOT_ERROR__(e.error || e.message); });
+    window.addEventListener('unhandledrejection', function(e){ if(!window.__IELTS_APP_STARTED__) window.__BOOT_ERROR__(e.reason); });
+  </script>
   <script src="content-01.js"></script>
   <script src="content-02.js"></script>
   <script src="content-03.js"></script>
@@ -31,15 +41,8 @@
   <script src="content-12.js"></script>
   <script src="data-loader.js"></script>
   <script src="listening-data.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
-  <script>
-    window.addEventListener('error', function (event) {
-      if (!window.React || !window.ReactDOM) {
-        document.getElementById('app').innerHTML = '<div style="padding:40px;font-family:system-ui"><h1>IELTS Training could not start</h1><p>Please refresh once. If this persists, the React runtime failed to load.</p></div>';
-      }
-    });
-  </script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
   <script src="react-app.js"></script>
 </body>
 </html>
