@@ -17,6 +17,20 @@
     const list=D.passages.filter(x=>S.filter==='All'||x.difficulty===S.filter);
     return `<main class="home-shell"><nav class="topbar"><button class="brand brand-button" data-home><span class="brand-mark">I/</span><span>IELTS TRAINING</span></button><div class="topbar-meta"><span class="quiet">Academic Reading</span><i class="status-dot"></i><span>100 original questions</span></div></nav>
     <section class="hero reveal"><div><p class="eyebrow">READING LAB / VOLUME 01</p><h1>Read closely.<br><em>Choose precisely.</em></h1><p class="hero-deck">A focused bank of original IELTS-style multiple-choice drills built around long-form academic passages, believable distractors and answer explanations.</p><div class="hero-actions"><button class="button primary" data-first>Start a passage ${ico('arrow')}</button><a class="text-link" href="#bank">Browse all 8 passages →</a></div></div><aside class="hero-scorecard"><div class="scorecard-top"><span class="mono">QUESTION BANK</span><span class="pill">MCQ / 01</span></div><strong>100</strong><span class="score-label">questions</span><div class="scorecard-grid"><div><span>08</span><small>passages</small></div><div><span>150′</span><small>suggested total</small></div><div><span>${String(done).padStart(2,'0')}</span><small>completed</small></div></div></aside></section>
+    <section class="listening-feature" aria-label="Listening practice">
+      <div class="listening-feature-copy">
+        <p class="eyebrow">LISTENING LAB / TEST 01</p>
+        <h2>Listen once.<br><em>Choose precisely.</em></h2>
+        <p>Four parts, 40 original questions and pre-generated recordings. No replay once a part starts.</p>
+        <button class="button primary" data-listening>Start Listening Test ${ico('arrow')}</button>
+      </div>
+      <div class="listening-feature-meta">
+        <div><strong>40</strong><span>questions</span></div>
+        <div><strong>04</strong><span>parts</span></div>
+        <div><strong>1×</strong><span>playback</span></div>
+        <div><strong>MCQ</strong><span>format</span></div>
+      </div>
+    </section>
     <section class="principles"><div><span>01</span><p>Questions follow the information order of each passage, like IELTS Reading MCQ tasks.</p></div><div><span>02</span><p>Answers stay locked until submission. Review mode explains why the correct option fits.</p></div><div><span>03</span><p>Progress is stored locally in your browser. No account, no setup.</p></div></section>
     <section class="bank" id="bank"><div class="section-head"><div><p class="eyebrow">PRACTICE BANK</p><h2>Eight readings. <em>One hundred decisions.</em></h2></div><div class="filters">${['All','Medium','Hard'].map(f=>`<button class="filter ${S.filter===f?'active':''}" data-filter="${f}">${f}</button>`).join('')}</div></div><div class="passage-grid">${list.map(card).join('')}</div></section>
     <footer class="footer"><div class="brand"><span class="brand-mark">I/</span><span>IELTS TRAINING</span></div><p>${esc(D.meta.disclaimer)} IELTS is a trademark of its respective owners; this project is not affiliated with or endorsed by IELTS.</p><span class="mono">BUILT FOR DELIBERATE PRACTICE</span></footer></main>`;
@@ -35,6 +49,7 @@
     $$('[data-home]').forEach(e=>e.onclick=()=>{remember();S.route='home';render()});
     $$('[data-open]').forEach(e=>{const go=()=>start(e.dataset.open);e.onclick=go;e.onkeydown=v=>{if(v.key==='Enter'||v.key===' ')go()}});
     $('[data-first]')?.addEventListener('click',()=>start((D.passages.find(x=>!S.progress[x.id]?.submitted)||D.passages[0]).id));
+    $('[data-listening]')?.addEventListener('click',()=>{location.hash='listening-test';location.reload()});
     $$('[data-filter]').forEach(e=>e.onclick=()=>{S.filter=e.dataset.filter;render();$('#bank')?.scrollIntoView()});
     $('[data-exit]')?.addEventListener('click',()=>{remember();S.route='home';render()});
     $$('[data-answer]').forEach(e=>e.onclick=()=>{S.answers[q().id]=+e.dataset.answer;remember();rerenderPractice(false)});
