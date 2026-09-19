@@ -30,19 +30,55 @@
     const [submitted, setSubmitted] = useState(false);
     const P = data.parts[part];
 
-    useEffect(() => { setStarted(false); setDone(false); setAudioError(""); setSubmitted(false); }, [part]);
+    const speechRef = useRef(0);
+
+    useEffect(() => {
+      speechRef.current++;
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      setStarted(false); setDone(false); setAudioError(''); setSubmitted(false);
+    }, [part]);
+
+    const speakFallback = () => {
+      if (!('speechSynthesis' in window)) {
+        setStarted(false); setDone(false);
+        setAudioError('The recording file is unavailable and browser speech is not supported.');
+        return;
+      }
+      const items = (window.IELTS_LISTENING_AUDIO?.[P.number] || []).map(item => String(item.text || ''));
+      if (!items.length) {
+        setStarted(false); setDone(false);
+        setAudioError('The recording asset is missing.');
+        return;
+      }
+      const token = ++speechRef.current;
+      window.speechSynthesis.cancel();
+      let index = 0;
+      const next = () => {
+        if (token !== speechRef.current) return;
+        if (index >= items.length) { setStarted(false); setDone(true); return; }
+        const utterance = new SpeechSynthesisUtterance(items[index++]);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.94;
+        utterance.onstart = () => setStarted(true);
+        utterance.onend = next;
+        utterance.onerror = () => { setStarted(false); setDone(false); setAudioError('Browser voice playback failed.'); };
+        window.speechSynthesis.speak(utterance);
+      };
+      setStarted(true);
+      next();
+    };
 
     const begin = () => {
       if (started || done) return;
-      setAudioError("");
-      const audio = new Audio();
-      audio.preload = "auto";
+      setAudioError('');
+      const audio = new Audio(P.audioUrl);
+      audio.preload = 'auto';
       audio.onplay = () => setStarted(true);
       audio.onended = () => { setDone(true); setStarted(false); };
-      audio.onerror = () => { setStarted(false); setDone(false); setAudioError("The recording file could not be loaded."); };
+      audio.onerror = () => speakFallback();
       audio.src = P.audioUrl;
       setStarted(true);
-      audio.play().catch(() => { setStarted(false); setDone(false); setAudioError("The recording could not be started."); });
+      audio.play().catch(() => speakFallback());
     };
 
     const score = P.q.reduce((total, q, i) => total + (answers[`${part}-${i}`] === q[2] ? 1 : 0), 0);
