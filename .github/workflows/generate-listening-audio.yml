@@ -1,0 +1,50 @@
+name: Generate Listening Audio
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Regenerate existing audio files (costs ElevenLabs credits)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Generate static listening audio
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_A: ${{ secrets.ELEVENLABS_VOICE_A }}
+          ELEVENLABS_VOICE_B: ${{ secrets.ELEVENLABS_VOICE_B }}
+        run: |
+          if [ "${{ inputs.force }}" = "true" ]; then
+            rm -f audio/listening-part-*.mp3
+          fi
+          node scripts/generate-listening-audio.mjs
+
+      - name: Commit generated audio
+        run: |
+          if git diff --quiet -- audio; then
+            echo "No audio changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audio/listening-part-*.mp3
+          git commit -m "Add pre-generated IELTS listening audio"
+          git push
