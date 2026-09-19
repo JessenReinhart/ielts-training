@@ -223,23 +223,33 @@
         passage.questions.map((item, i) => {
           const selected = answers[item.id];
           const ok = selected === item.answer;
-          return h("button", {
+          return h("article", {
             key: item.id,
-            className: `reading-answer-row ${ok ? "ok" : "miss"}`,
-            onClick: () => {
-              setSubmitted(false);
-              setReviewQuestion(true);
-              setQuestion(i);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }
+            className: `reading-answer-item ${ok ? "ok" : "miss"}`
           },
-            h("span", { className: "reading-answer-num" }, String(i + 1).padStart(2, "0")),
-            h("span", { className: "reading-answer-prompt" }, item.prompt),
-            h("span", { className: "reading-answer-selected" },
-              selected === undefined ? "—" : String.fromCharCode(65 + selected)
+            h("button", {
+              className: "reading-answer-row",
+              onClick: () => {
+                setSubmitted(false);
+                setReviewQuestion(true);
+                setQuestion(i);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            },
+              h("span", { className: "reading-answer-num" }, String(i + 1).padStart(2, "0")),
+              h("span", { className: "reading-answer-prompt" }, item.prompt),
+              h("span", { className: "reading-answer-selected" },
+                selected === undefined ? "—" : String.fromCharCode(65 + selected)
+              ),
+              h("span", { className: "reading-answer-correct" },
+                `Correct: ${String.fromCharCode(65 + item.answer)}`
+              )
             ),
-            h("span", { className: "reading-answer-correct" },
-              `Correct: ${String.fromCharCode(65 + item.answer)}`
+            h("div", { className: "reading-answer-explanation" },
+              h("span", { className: "explanation-label" },
+                ok ? "Why this is correct" : "Why you missed it"
+              ),
+              h("p", null, item.explanation)
             )
           );
         })
