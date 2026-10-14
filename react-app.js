@@ -147,7 +147,7 @@
           h("p", { className: "eyebrow" }, "IELTS TRAINING / ACADEMIC"),
           h("h1", null, "Read closely.", h("br"), h("em", null, "Choose precisely.")),
           h("p", { className: "hero-deck" }, "Original IELTS-style practice with a dedicated learning centre and a full listening lab. Build the skill, then test it."),
-          h("div", { className: "hero-actions" }, h(Button, { onClick: () => go("reading") }, "Start Reading →"), h(Button, { className: "secondary", onClick: () => go("learn") }, "Learn the test"))
+          h("div", { className: "hero-actions" }, h(Button, { onClick: () => go("reading", passages[0]?.id) }, "Start Reading →"), h(Button, { className: "secondary", onClick: () => go("learn") }, "Learn the test"))
         ),
         h("aside", { className: "hero-scorecard" }, h("span", { className: "mono" }, "TRAINING CENTRE"), h("strong", null, "100"), h("span", { className: "score-label" }, "reading questions"),
           h("div", { className: "scorecard-grid" }, h("div", null, h("span", null, "40"), h("small", null, "listening")), h("div", null, h("span", null, "08"), h("small", null, "passages")), h("div", null, h("span", null, "04"), h("small", null, "parts")))
@@ -159,7 +159,7 @@
       ),
       h("section", { className: "bank", id: "bank" },
         h("div", { className: "section-head" }, h("div", null, h("p", { className: "eyebrow" }, "PRACTICE BANK"), h("h2", null, "Eight readings. ", h("em", null, "One hundred decisions.")))),
-        h("div", { className: "passage-grid" }, passages.map((p) => h("article", { className: "passage-card", key: p.id, onClick: () => go("reading") }, h("div", { className: "card-index mono" }, String(p.number).padStart(2, "0")), h("div", { className: "card-body" }, h("p", { className: "card-kicker" }, p.kicker), h("h3", null, p.title)), h("div", { className: "card-arrow" }, "→"))))
+        h("div", { className: "passage-grid" }, passages.map((p) => h("article", { className: "passage-card", key: p.id, onClick: () => go("reading", p.id) }, h("div", { className: "card-index mono" }, String(p.number).padStart(2, "0")), h("div", { className: "card-body" }, h("p", { className: "card-kicker" }, p.kicker), h("h3", null, p.title)), h("div", { className: "card-arrow" }, "→"))))
       )
     );
   }
@@ -169,15 +169,25 @@
     return h("main", { className: "home-shell" }, h(Nav, { route: "learn", go }), h("section", { className: "learn-hero" }, h("p", { className: "eyebrow" }, "LEARNING CENTRE"), h("h1", null, "Understand the test.", h("br"), h("em", null, "Then train the skill.")), h("p", null, "A structured curriculum covering IELTS Academic format, task types, scoring and strategy.")), h("section", { className: "lesson-grid" }, lessons.map(([number, title, description]) => h("article", { className: "lesson-card", key: number }, h("span", { className: "mono" }, number), h("h2", null, title), h("p", null, description), h("button", { onClick: () => go(title === "Listening" ? "listening" : "reading") }, "Open lesson →")))));
   }
 
-  
-  function Reading({ go }) {
+  function Reading({ go, initialPassageId, onSelectPassage }) {
     const data = window.IELTS_DATA;
-    const [pid, setPid] = useState(data?.passages?.[0]?.id);
+    const [pid, setPid] = useState(initialPassageId || data?.passages?.[0]?.id);
     const [question, setQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [submitted, setSubmitted] = useState(false);
     const [reviewQuestion, setReviewQuestion] = useState(false);
     const passage = data?.passages?.find(p => p.id === pid) || data?.passages?.[0];
+
+    useEffect(() => {
+      if (initialPassageId && initialPassageId !== pid) {
+        setPid(initialPassageId);
+      }
+    }, [initialPassageId]);
+
+    const selectPassage = (nextId) => {
+      setPid(nextId);
+      if (onSelectPassage) onSelectPassage(nextId);
+    };
 
     useEffect(() => {
       setQuestion(0);
@@ -258,6 +268,8 @@
     );
 
     if (submitted) {
+      const currentIdx = data.passages.findIndex(p => p.id === passage.id);
+      const nextPassage = data.passages[(currentIdx + 1) % data.passages.length] || data.passages[0];
       return h("main", { className: "reading-result-react" },
         h(Nav, { route: "reading", go }),
         h("section", { className: "reading-result-hero" },
@@ -271,7 +283,7 @@
               onClick: () => { setSubmitted(false); setReviewQuestion(true); setQuestion(0); }
             }, "Review answers →"),
             h(Button, { className: "secondary", onClick: () => {
-              setPid(data.passages[0]?.id);
+              selectPassage(nextPassage?.id);
               setSubmitted(false);
               setAnswers({});
               setQuestion(0);
@@ -300,7 +312,7 @@
             h("button", {
               key: item.id,
               className: item.id === passage.id ? "active" : "",
-              onClick: () => setPid(item.id)
+              onClick: () => selectPassage(item.id)
             }, `0${item.number}`)
           )
         )
@@ -309,7 +321,7 @@
         h("article", { className: "reading-pane" },
           h("div", { className: "pane-label" }, "READING PASSAGE"),
           h("div", { className: "passage-copy" },
-            passage.text.split("\\n\\n").map((text, i) => h("p", { key: i }, text))
+            passage.text.split("\n\n").map((text, i) => h("p", { key: i }, text))
           )
         ),
         h("aside", { className: "question-pane" },
@@ -380,15 +392,71 @@
   }
 
   function App() {
-    const initial = location.hash === "#listening-test" ? "listening" : location.hash === "#learn" ? "learn" : location.hash === "#reading" ? "reading" : "home";
-    const [route, setRoute] = useState(initial);
-    useEffect(() => { const onHash = () => { const hash = location.hash; setRoute(hash === "#listening-test" ? "listening" : hash === "#learn" ? "learn" : hash === "#reading" ? "reading" : "home"); }; window.addEventListener("hashchange", onHash); return () => window.removeEventListener("hashchange", onHash); }, []);
-    const go = (next) => { setRoute(next); history.pushState(null, "", next === "listening" ? "#listening-test" : next === "home" ? "#" : `#${next}`); };
+    const data = window.IELTS_DATA;
+    const resolvePassageId = (raw) => {
+      if (!raw || !data?.passages?.length) return null;
+      const found = data.passages.find(
+        p => p.id === raw || String(p.number) === raw || String(p.number).padStart(2, "0") === raw
+      );
+      return found ? found.id : null;
+    };
+    const parseHash = () => {
+      const hash = location.hash;
+      if (hash === "#listening-test") return { route: "listening", passageId: null };
+      if (hash === "#learn") return { route: "learn", passageId: null };
+      if (hash === "#reading" || hash.startsWith("#reading/")) {
+        const rawId = hash.startsWith("#reading/") ? decodeURIComponent(hash.slice("#reading/".length)) : null;
+        return { route: "reading", passageId: resolvePassageId(rawId) };
+      }
+      return { route: "home", passageId: null };
+    };
+    const initial = parseHash();
+    const [route, setRoute] = useState(initial.route);
+    const [passageId, setPassageId] = useState(initial.passageId || data?.passages?.[0]?.id);
+
+    useEffect(() => {
+      const onRouteChange = () => {
+        const parsed = parseHash();
+        setRoute(parsed.route);
+        if (parsed.passageId) setPassageId(parsed.passageId);
+      };
+      window.addEventListener("hashchange", onRouteChange);
+      window.addEventListener("popstate", onRouteChange);
+      return () => {
+        window.removeEventListener("hashchange", onRouteChange);
+        window.removeEventListener("popstate", onRouteChange);
+      };
+    }, []);
+
+    const go = (next, nextPassageId) => {
+      const explicitPassageId = typeof nextPassageId === "string" ? nextPassageId : null;
+      const targetPassageId = explicitPassageId || passageId || data?.passages?.[0]?.id;
+      if (explicitPassageId) setPassageId(explicitPassageId);
+      setRoute(next);
+      const nextHash = next === "listening"
+        ? "#listening-test"
+        : next === "home"
+          ? "#"
+          : next === "reading" && targetPassageId
+            ? `#reading/${targetPassageId}`
+            : `#${next}`;
+      history.pushState(null, "", nextHash);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const handleSelectPassage = (nextId) => {
+      setPassageId(nextId);
+      if (route === "reading" && nextId) {
+        history.replaceState(null, "", `#reading/${nextId}`);
+      }
+    };
+
     if (route === "listening") return h(Listening, { go });
     if (route === "learn") return h(Learn, { go });
-    if (route === "reading") return h(Reading, { go });
+    if (route === "reading") return h(Reading, { go, initialPassageId: passageId, onSelectPassage: handleSelectPassage });
     return h(Home, { go });
   }
 
   ReactDOM.createRoot(document.getElementById("app")).render(h(App));
+  window.__IELTS_APP_STARTED__ = true;
 })();
